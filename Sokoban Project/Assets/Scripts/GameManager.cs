@@ -21,9 +21,9 @@ public class GameManager : MonoBehaviour {
 	//the user input keys
 	public KeyCode[] userInputKeys;//up, right, down, left
 	Vector2 middleOffset=new Vector2();//offset for aligning the level to middle of the screen
-	int ballCount;//number of balls in level
-	GameObject hero;//out triangular hero
-	GameObject ball;//out triangular hero
+	int ballCount;
+	GameObject hero;
+	GameObject ball;
 	
 	Dictionary<GameObject,Vector2> occupants=new Dictionary<GameObject, Vector2>();
 	bool gameOver;
@@ -33,7 +33,6 @@ public class GameManager : MonoBehaviour {
 	void Start () {
 		dataContainer = gameObject.GetComponent<GameData>();
 		gameOver=false;
-		ballCount=0;
 		
 		rows = dataContainer.GetRowCount();
 		cols = dataContainer.GetColumnCount();
@@ -49,9 +48,10 @@ public class GameManager : MonoBehaviour {
 		occupants.Add(hero, initLocation);//store the level indices of hero in dict
 	}
 	
-	public void SetupBalls(GameObject ballRender, Vector2 initLocation) {
+	public void SetupBalls(GameObject ballRender, Vector2 initLocation, int ballCountInput) {
 		ball = ballRender;
 		occupants.Add(ball, initLocation);//store the level indices of ball in dict
+		ballCount = ballCountInput;
 	}
 
 
@@ -78,13 +78,9 @@ public class GameManager : MonoBehaviour {
 		heroPos=GetNextPositionAlong(oldHeroPos,direction);//find the next array position in given direction
 		
 		if(IsValidPosition(heroPos)){//check if it is a valid position & falls inside the level array
-				Debug.Log("moving player");
 			if(!IsOccuppied(heroPos)){//check if it is occuppied by a ball
-				Debug.Log("not occ");
 
 				//move hero
-				Debug.Log(oldHeroPos);
-				Debug.Log(dataContainer.getScreenPointFromLevelIndices((int)heroPos.x,(int)heroPos.y));
 				RemoveOccuppant(oldHeroPos);//reset old level data at old position
 				hero.transform.position=dataContainer.getScreenPointFromLevelIndices((int)heroPos.x,(int)heroPos.y);
 				occupants[hero]=heroPos;
@@ -134,8 +130,8 @@ public class GameManager : MonoBehaviour {
 				}
 			}
 		}
+		Debug.Log("ballsOnDest:" + ballsOnDestination + ", ballCount: " + ballCount);
 		if(ballsOnDestination==ballCount){
-			Debug.Log("level complete");
 			gameOver=true;
 		}
     }

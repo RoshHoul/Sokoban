@@ -31,7 +31,7 @@ public class LevelLoader : MonoBehaviour {
 	void Awake () {
 		dataContainer = gameObject.GetComponent<GameData>();
 		gameManager = gameObject.GetComponent<GameManager>();
-		
+		destinationColor = Color.blue;
 
 		gameOver=false;
 		ballCount=0;
@@ -78,10 +78,13 @@ public class LevelLoader : MonoBehaviour {
 					sr = tile.AddComponent<SpriteRenderer>();
 					//assign tile sprite
 					sr.sprite=tileSprite;
+					sr.sortingOrder=1;
 					//place in scene based on level indices
 					tile.transform.position = dataContainer.getScreenPointFromLevelIndices(i,j);
 					if(val==dataContainer.destinationTile){//if it is a destination tile, give different color
+						Debug.Log("destinationTile");
 						sr.color = destinationColor;
+						sr.sortingOrder=2;
 						destinationCount++;//count destinations
 					}else{
 						if (val==dataContainer.heroTile) {//the hero tile
@@ -89,7 +92,7 @@ public class LevelLoader : MonoBehaviour {
 							hero.transform.localScale=Vector2.one*(dataContainer.tileSize-1);
 							sr = hero.AddComponent<SpriteRenderer>();
 							sr.sprite=heroSprite;
-							sr.sortingOrder=1;
+							sr.sortingOrder=3;
 							sr.color=Color.red;
 							hero.transform.position = dataContainer.getScreenPointFromLevelIndices(i,j);
 							gameManager.SetupPlayer(hero, new Vector2(i,j));
@@ -99,14 +102,15 @@ public class LevelLoader : MonoBehaviour {
 							ball.transform.localScale=Vector2.one*(dataContainer.tileSize-1);
 							sr = ball.AddComponent<SpriteRenderer>();
 							sr.sprite=ballSprite;
-							sr.sortingOrder=1;
+							sr.sortingOrder=3;
 							sr.color=Color.black;
 							ball.transform.position = dataContainer.getScreenPointFromLevelIndices(i,j);
-							gameManager.SetupBalls(ball, new Vector2(i,j));
+							gameManager.SetupBalls(ball, new Vector2(i,j), ballCount);
 						}
 					}
 				} 
             }
+									Debug.Log(destinationCount);
         }
 		if(ballCount>destinationCount) {
 		

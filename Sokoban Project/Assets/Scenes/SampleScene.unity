@@ -236,7 +236,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   levelName: level
-  destinationColor: {r: 1, g: 0.5990566, b: 0.5990566, a: 0}
+  destinationColor: {r: 0, g: 1, b: 0.038576365, a: 0}
   tileSprite: {fileID: 21300000, guid: b17a5f87185b3044aa3082618fff10c0, type: 3}
   heroSprite: {fileID: 21300000, guid: aa67d01bd34c94448854e09ffc72958b, type: 3}
   ballSprite: {fileID: 21300000, guid: 579f4f8e7b9d3304494dde957579e104, type: 3}
