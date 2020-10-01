@@ -45,6 +45,8 @@ public class GameManager : MonoBehaviour {
 
 	public void SetupPlayer(GameObject heroRender, Vector2 initLocation) {
 		hero = heroRender;
+		Camera.main.transform.parent = hero.transform;
+		Camera.main.transform.localPosition = Vector3.zero;		
 		occupants.Add(hero, initLocation);//store the level indices of hero in dict
 	}
 	

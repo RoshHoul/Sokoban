@@ -110,6 +110,7 @@ public class LevelLoader : MonoBehaviour {
 							sr.sortingOrder=3;
 							sr.color=Color.red;
 							hero.transform.position = dataContainer.getScreenPointFromLevelIndices(i,j);
+							
 							gameManager.SetupPlayer(hero, new Vector2(i,j));
 
 						} else if (val==dataContainer.ballTile) {
@@ -127,6 +128,8 @@ public class LevelLoader : MonoBehaviour {
 				} 
             }
         }
+
+
 
 		if(heroCount != 1) {
 			Debug.LogError("There must be exactly 1 hero in the config file. Hero is marked by tileID: 2");
