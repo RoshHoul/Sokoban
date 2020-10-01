@@ -19,23 +19,29 @@ public class LevelLoader : MonoBehaviour {
 	//the user input keys
 	private int rows;
 	private int cols;
-	Vector2 middleOffset=new Vector2();//offset for aligning the level to middle of the screen
+
 	int ballCount;//number of balls in level
 	GameObject hero;
-	Dictionary<GameObject,Vector2> occupants;//reference to balls & hero
+//	Dictionary<GameObject,Vector2> occupants;//reference to balls & hero
 	bool gameOver;
 
 	GameData dataContainer;
+	GameManager gameManager;
 
 	void Awake () {
 		dataContainer = gameObject.GetComponent<GameData>();
+		gameManager = gameObject.GetComponent<GameManager>();
+		
+
 		gameOver=false;
 		ballCount=0;
-		occupants=new Dictionary<GameObject, Vector2>();
+//		occupants=new Dictionary<GameObject, Vector2>();
 		ParseLevel();//load text file & parse our level 2d array
-		CreateLevel();//create the level based on the array
 		dataContainer.SetLevelDataStructure(levelData);
 		dataContainer.SetLevelDimensions(rows, cols);
+		dataContainer.SetMiddleOffset();
+		CreateLevel();//create the level based on the array
+
 	}
 	void ParseLevel(){
 		TextAsset textFile = Resources.Load (levelName) as TextAsset;
@@ -59,9 +65,6 @@ public class LevelLoader : MonoBehaviour {
         }
 	}
 	void CreateLevel(){
-		//calculate the offset to align whole level to scene middle
-		middleOffset.x=cols*dataContainer.tileSize*0.5f-dataContainer.tileSize*0.5f;
-		middleOffset.y=rows*dataContainer.tileSize*0.5f-dataContainer.tileSize*0.5f;;
 		GameObject tile;
 		SpriteRenderer sr;
 		GameObject ball;
@@ -76,40 +79,41 @@ public class LevelLoader : MonoBehaviour {
 					//assign tile sprite
 					sr.sprite=tileSprite;
 					//place in scene based on level indices
-					tile.transform.position = GetScreenPointFromLevelIndices(i,j);
+					tile.transform.position = dataContainer.getScreenPointFromLevelIndices(i,j);
 					if(val==dataContainer.destinationTile){//if it is a destination tile, give different color
 						sr.color = destinationColor;
 						destinationCount++;//count destinations
 					}else{
-						if(val==dataContainer.heroTile){//the hero tile
+						if (val==dataContainer.heroTile) {//the hero tile
 							hero = new GameObject("hero");
 							hero.transform.localScale=Vector2.one*(dataContainer.tileSize-1);
 							sr = hero.AddComponent<SpriteRenderer>();
 							sr.sprite=heroSprite;
-							sr.sortingOrder=1;//hero needs to be over the ground tile
+							sr.sortingOrder=1;
 							sr.color=Color.red;
-							hero.transform.position = GetScreenPointFromLevelIndices(i,j);
-							occupants.Add(hero, new Vector2(i,j));//store the level indices of hero in dict
-						}else if(val==dataContainer.ballTile){//ball tile
-							ballCount++;//increment number of balls in level
+							hero.transform.position = dataContainer.getScreenPointFromLevelIndices(i,j);
+							gameManager.SetupPlayer(hero, new Vector2(i,j));
+						} else if (val==dataContainer.ballTile) {
+							ballCount++;
 							ball = new GameObject("ball"+ballCount.ToString());
 							ball.transform.localScale=Vector2.one*(dataContainer.tileSize-1);
 							sr = ball.AddComponent<SpriteRenderer>();
 							sr.sprite=ballSprite;
-							sr.sortingOrder=1;//ball needs to be over the ground tile
+							sr.sortingOrder=1;
 							sr.color=Color.black;
-							ball.transform.position = GetScreenPointFromLevelIndices(i,j);
-							occupants.Add(ball, new Vector2(i,j));//store the level indices of ball in dict
+							ball.transform.position = dataContainer.getScreenPointFromLevelIndices(i,j);
+							gameManager.SetupBalls(ball, new Vector2(i,j));
 						}
 					}
 				} 
             }
         }
-		if(ballCount>destinationCount)Debug.LogError("there are more balls than destinations");
+		if(ballCount>destinationCount) {
+		
+			Debug.LogError("there are " + ballCount + " balls and " + destinationCount + " destinations");
+		}
 	}
 	
-	public Vector2 GetScreenPointFromLevelIndices(int row,int col){
-		return new Vector2(col*dataContainer.tileSize-middleOffset.x,row*-dataContainer.tileSize+middleOffset.y);
-	}
+
 
 }

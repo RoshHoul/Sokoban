@@ -236,18 +236,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   levelName: level
-  invalidTile: -1
-  groundTile: 1
-  destinationTile: 0
-  heroTile: 2
-  ballTile: 3
-  heroOnDestinationTile: -3
-  ballOnDestinationTile: -2
   destinationColor: {r: 1, g: 0.5990566, b: 0.5990566, a: 0}
   tileSprite: {fileID: 21300000, guid: b17a5f87185b3044aa3082618fff10c0, type: 3}
   heroSprite: {fileID: 21300000, guid: aa67d01bd34c94448854e09ffc72958b, type: 3}
   ballSprite: {fileID: 21300000, guid: 579f4f8e7b9d3304494dde957579e104, type: 3}
-  gameManager: {fileID: 1462453018}
 --- !u!4 &1462453017
 Transform:
   m_ObjectHideFlags: 0
@@ -278,7 +270,6 @@ MonoBehaviour:
   invalidTile: -1
   groundTile: 1
   destinationTile: 0
-  heroTile: 2
   ballTile: 3
   heroOnDestinationTile: -3
   ballOnDestinationTile: -2
@@ -297,7 +288,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   invalidTile: -1
   groundTile: 1
-  destinationTile: 2
+  destinationTile: 0
   heroTile: 2
   ballTile: 3
   tileSize: 50
+  middleOffset: {x: 0, y: 0}

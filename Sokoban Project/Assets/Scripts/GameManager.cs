@@ -11,7 +11,6 @@ public class GameManager : MonoBehaviour {
 	public int invalidTile;
 	public int groundTile;
 	public int destinationTile;
-	public int heroTile;
 	public int ballTile;
 	public int heroOnDestinationTile;
 	public int ballOnDestinationTile;
@@ -24,7 +23,9 @@ public class GameManager : MonoBehaviour {
 	Vector2 middleOffset=new Vector2();//offset for aligning the level to middle of the screen
 	int ballCount;//number of balls in level
 	GameObject hero;//out triangular hero
-	Dictionary<GameObject,Vector2> occupants;//reference to balls & hero
+	GameObject ball;//out triangular hero
+	
+	Dictionary<GameObject,Vector2> occupants=new Dictionary<GameObject, Vector2>();
 	bool gameOver;
 
 	GameData dataContainer;
@@ -33,7 +34,7 @@ public class GameManager : MonoBehaviour {
 		dataContainer = gameObject.GetComponent<GameData>();
 		gameOver=false;
 		ballCount=0;
-		occupants=new Dictionary<GameObject, Vector2>();
+		
 		rows = dataContainer.GetRowCount();
 		cols = dataContainer.GetColumnCount();
 	}
@@ -43,11 +44,23 @@ public class GameManager : MonoBehaviour {
 		ApplyUserInput();//check & use user input to move hero and balls
 	}
 
+	public void SetupPlayer(GameObject heroRender, Vector2 initLocation) {
+		hero = heroRender;
+		occupants.Add(hero, initLocation);//store the level indices of hero in dict
+	}
+	
+	public void SetupBalls(GameObject ballRender, Vector2 initLocation) {
+		ball = ballRender;
+		occupants.Add(ball, initLocation);//store the level indices of ball in dict
+	}
+
+
     private void ApplyUserInput()
     {
         if(Input.GetKeyUp(userInputKeys[0])){
 			TryMoveHero(0);//up
 		}else if(Input.GetKeyUp(userInputKeys[1])){
+			Debug.Log("ApplyUserInput");
 			TryMoveHero(1);//right
 		}else if(Input.GetKeyUp(userInputKeys[2])){
 			TryMoveHero(2);//down
@@ -57,6 +70,7 @@ public class GameManager : MonoBehaviour {
     }
     private void TryMoveHero(int direction)
     {
+		Debug.Log("MoveInput");
         Vector2 heroPos;
 		Vector2 oldHeroPos;
 		Vector2 nextPos;
@@ -64,13 +78,18 @@ public class GameManager : MonoBehaviour {
 		heroPos=GetNextPositionAlong(oldHeroPos,direction);//find the next array position in given direction
 		
 		if(IsValidPosition(heroPos)){//check if it is a valid position & falls inside the level array
+				Debug.Log("moving player");
 			if(!IsOccuppied(heroPos)){//check if it is occuppied by a ball
+				Debug.Log("not occ");
+
 				//move hero
+				Debug.Log(oldHeroPos);
+				Debug.Log(dataContainer.getScreenPointFromLevelIndices((int)heroPos.x,(int)heroPos.y));
 				RemoveOccuppant(oldHeroPos);//reset old level data at old position
-				hero.transform.position=GetScreenPointFromLevelIndices((int)heroPos.x,(int)heroPos.y);
+				hero.transform.position=dataContainer.getScreenPointFromLevelIndices((int)heroPos.x,(int)heroPos.y);
 				occupants[hero]=heroPos;
 				if(dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]==groundTile){//moving onto a ground tile
-					dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]=heroTile;
+					dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]=dataContainer.heroTile;
 				}else if(dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]==destinationTile){//moving onto a destination tile
 					dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]=heroOnDestinationTile;
 				}
@@ -82,7 +101,7 @@ public class GameManager : MonoBehaviour {
 						GameObject ball=GetOccupantAtPosition(heroPos);//find the ball at this position
 						if(ball==null)Debug.Log("no ball");
 						RemoveOccuppant(heroPos);//ball should be moved first before moving the hero
-						ball.transform.position=GetScreenPointFromLevelIndices((int)nextPos.x,(int)nextPos.y);
+						ball.transform.position=dataContainer.getScreenPointFromLevelIndices((int)nextPos.x,(int)nextPos.y);
 						occupants[ball]=nextPos;
 						if(dataContainer.levelData[(int)nextPos.x,(int)nextPos.y]==groundTile){
 							dataContainer.levelData[(int)nextPos.x,(int)nextPos.y]=ballTile;
@@ -90,10 +109,10 @@ public class GameManager : MonoBehaviour {
 							dataContainer.levelData[(int)nextPos.x,(int)nextPos.y]=ballOnDestinationTile;
 						}
 						RemoveOccuppant(oldHeroPos);//now move hero
-						hero.transform.position=GetScreenPointFromLevelIndices((int)heroPos.x,(int)heroPos.y);
+						hero.transform.position=dataContainer.getScreenPointFromLevelIndices((int)heroPos.x,(int)heroPos.y);
 						occupants[hero]=heroPos;
 						if(dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]==groundTile){
-							dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]=heroTile;
+							dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]=dataContainer.heroTile;
 						}else if(dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]==destinationTile){
 							dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]=heroOnDestinationTile;
 						}
@@ -136,7 +155,7 @@ public class GameManager : MonoBehaviour {
 
     private void RemoveOccuppant(Vector2 objPos)
     {
-        if(dataContainer.levelData[(int)objPos.x,(int)objPos.y]==heroTile||dataContainer.levelData[(int)objPos.x,(int)objPos.y]==ballTile){
+        if(dataContainer.levelData[(int)objPos.x,(int)objPos.y]==dataContainer.heroTile||dataContainer.levelData[(int)objPos.x,(int)objPos.y]==ballTile){
 			dataContainer.levelData[(int)objPos.x,(int)objPos.y]=groundTile;//ball moving from ground tile
 		}else if(dataContainer.levelData[(int)objPos.x,(int)objPos.y]==heroOnDestinationTile){
 			dataContainer.levelData[(int)objPos.x,(int)objPos.y]=destinationTile;//hero moving from destination tile
@@ -175,16 +194,7 @@ public class GameManager : MonoBehaviour {
 		}
 		return objPos;
     }
-	public Vector2 GetScreenPointFromLevelIndices(int row,int col){
-		return new Vector2(col*tileSize-middleOffset.x,row*-tileSize+middleOffset.y);
-	}
-	/*//the reverse methods to find indices from a screen point
-	Vector2 GetLevelIndicesFromScreenPoint(float xVal,float yVal){
-		return new Vector2((int)(yVal-middleOffset.y)/-tileSize,(int)(xVal+middleOffset.x)/tileSize);
-	}
-	Vector2 GetLevelIndicesFromScreenPoint(Vector2 pos){
-		return GetLevelIndicesFromScreenPoint(pos.x,pos.y);
-	}*/
+
 	public void RestartLevel(){
 		//Application.LoadLevel(0);
 		SceneManager.LoadScene(0);

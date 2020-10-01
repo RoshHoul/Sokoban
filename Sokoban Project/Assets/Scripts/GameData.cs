@@ -13,9 +13,13 @@ public class GameData : MonoBehaviour
     public int tileSize;
     int rows;
     int cols;
-    int ballCount;
-    GameObject hero;
-    Dictionary<GameObject, Vector2> occupants;
+
+	public Vector2 middleOffset=new Vector2();//offset for aligning the level to middle of the screen
+
+    
+    void Start() {
+        
+    }
 
     public void SetLevelDataStructure(int[,] updatedLevel) {
         levelData = updatedLevel;
@@ -26,6 +30,10 @@ public class GameData : MonoBehaviour
         cols = y;
     }
 
+    public void SetMiddleOffset() {
+        middleOffset.x=cols*tileSize*0.5f-tileSize*0.5f;
+		middleOffset.y=rows*tileSize*0.5f-tileSize*0.5f;;
+    }
     public int GetRowCount() {
         return rows;
     }
@@ -34,6 +42,16 @@ public class GameData : MonoBehaviour
         return cols;
     }
 
+	public Vector2 getScreenPointFromLevelIndices(int rowInput,int colInput){
+		return new Vector2(colInput*tileSize-middleOffset.x,rowInput*-tileSize+middleOffset.y);
+	}
+    	/*//the reverse methods to find indices from a screen point
+	Vector2 GetLevelIndicesFromScreenPoint(float xVal,float yVal){
+		return new Vector2((int)(yVal-middleOffset.y)/-tileSize,(int)(xVal+middleOffset.x)/tileSize);
+	}
+	Vector2 GetLevelIndicesFromScreenPoint(Vector2 pos){
+		return GetLevelIndicesFromScreenPoint(pos.x,pos.y);
+	}*/
 
 
 }
