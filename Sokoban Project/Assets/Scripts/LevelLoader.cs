@@ -21,7 +21,8 @@ public class LevelLoader : MonoBehaviour {
 	private int cols;
 
 	int ballCount;//number of balls in level
-	GameObject hero;
+	int heroCount;
+
 //	Dictionary<GameObject,Vector2> occupants;//reference to balls & hero
 	bool gameOver;
 
@@ -46,17 +47,31 @@ public class LevelLoader : MonoBehaviour {
 	void ParseLevel(){
 		TextAsset textFile = Resources.Load (levelName) as TextAsset;
 		string[] lines = textFile.text.Split (new[] { '\r', '\n' }, System.StringSplitOptions.RemoveEmptyEntries);//split by new line, return
-		string[] nums = lines[0].Split(new[] { ',' });//split by ,
+		string[] nums;
+		int longestLine = 0;
+		foreach (string str in lines) {
+			nums = str.Split(new[] { ','});
+			if (longestLine <= nums.Length) {
+				longestLine = nums.Length;
+			}
+		}
+//		string[] nums = lines[0].Split(new[] { ',' });//split by ,
+
 		rows=lines.Length;//number of rows
-		cols=nums.Length;//number of columns
+		cols=longestLine;//number of columns
 		levelData = new int[rows, cols];
         for (int i = 0; i < rows; i++) {
 			string st = lines[i];
-            nums = st.Split(new[] { ',' });
+			nums = st.Split(new[] { ',' });
 			for (int j = 0; j < cols; j++) {
                 int val;
-                if (int.TryParse (nums[j], out val)){
-                	levelData[i,j] = val;
+				if (j < nums.Length && nums[j] != ",") {
+					if (int.TryParse (nums[j], out val)){
+						levelData[i,j] = val;
+					} else {
+						Debug.Log(i + ", " + j);
+                    	levelData[i,j] = dataContainer.invalidTile;
+					}				
 				}
                 else{
                     levelData[i,j] = dataContainer.invalidTile;
@@ -82,13 +97,13 @@ public class LevelLoader : MonoBehaviour {
 					//place in scene based on level indices
 					tile.transform.position = dataContainer.getScreenPointFromLevelIndices(i,j);
 					if(val==dataContainer.destinationTile){//if it is a destination tile, give different color
-						Debug.Log("destinationTile");
 						sr.color = destinationColor;
 						sr.sortingOrder=2;
 						destinationCount++;//count destinations
 					}else{
 						if (val==dataContainer.heroTile) {//the hero tile
-							hero = new GameObject("hero");
+							heroCount++;
+							GameObject hero = new GameObject("hero");
 							hero.transform.localScale=Vector2.one*(dataContainer.tileSize-1);
 							sr = hero.AddComponent<SpriteRenderer>();
 							sr.sprite=heroSprite;
@@ -96,6 +111,7 @@ public class LevelLoader : MonoBehaviour {
 							sr.color=Color.red;
 							hero.transform.position = dataContainer.getScreenPointFromLevelIndices(i,j);
 							gameManager.SetupPlayer(hero, new Vector2(i,j));
+
 						} else if (val==dataContainer.ballTile) {
 							ballCount++;
 							ball = new GameObject("ball"+ballCount.ToString());
@@ -110,11 +126,18 @@ public class LevelLoader : MonoBehaviour {
 					}
 				} 
             }
-									Debug.Log(destinationCount);
         }
+
+		if(heroCount != 1) {
+			Debug.LogError("There must be exactly 1 hero in the config file. Hero is marked by tileID: 2");
+		}
+
 		if(ballCount>destinationCount) {
+			Debug.LogError("There are more balls than targets. Please ensure there are more targets than balls in the config file. ");
+		} 
 		
-			Debug.LogError("there are " + ballCount + " balls and " + destinationCount + " destinations");
+		if (ballCount < 1) {
+			Debug.LogError("There must be at least 1 ball in the config file. Balls are marked by tileID: 3");
 		}
 	}
 	
