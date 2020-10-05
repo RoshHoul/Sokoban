@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -45,13 +46,19 @@ public class GameData : MonoBehaviour
 	public Vector2 getScreenPointFromLevelIndices(int rowInput,int colInput){
 		return new Vector2(colInput*tileSize-middleOffset.x,rowInput*-tileSize+middleOffset.y);
 	}
-    	/*//the reverse methods to find indices from a screen point
+    	//the reverse methods to find indices from a screen point
 	Vector2 GetLevelIndicesFromScreenPoint(float xVal,float yVal){
-		return new Vector2((int)(yVal-middleOffset.y)/-tileSize,(int)(xVal+middleOffset.x)/tileSize);
+        int x = (int)(xVal + middleOffset.x) / tileSize;
+        int y = (int)(yVal - middleOffset.y) / -tileSize; 
+        
+
+//		return new Vector2((int)(yVal-middleOffset.y)/-tileSize,(int)(xVal+middleOffset.x)/tileSize);
+		return new Vector2(y, x);
+
 	}
-	Vector2 GetLevelIndicesFromScreenPoint(Vector2 pos){
+	public Vector2 GetLevelIndicesFromScreenPoint(Vector2 pos){
 		return GetLevelIndicesFromScreenPoint(pos.x,pos.y);
-	}*/
+	}
 
 
 }

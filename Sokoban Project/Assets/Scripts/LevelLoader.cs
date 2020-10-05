@@ -69,7 +69,6 @@ public class LevelLoader : MonoBehaviour {
 					if (int.TryParse (nums[j], out val)){
 						levelData[i,j] = val;
 					} else {
-						Debug.Log(i + ", " + j);
                     	levelData[i,j] = dataContainer.invalidTile;
 					}				
 				}

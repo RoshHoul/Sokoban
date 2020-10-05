@@ -41,6 +41,20 @@ public class GameManager : MonoBehaviour {
 	void Update(){
 		if(gameOver)return;
 		ApplyUserInput();//check & use user input to move hero and balls
+		if (Input.GetMouseButtonDown(0)) {
+			Vector2 mousePos = Input.mousePosition;
+			mousePos = Camera.main.ScreenToWorldPoint(mousePos);
+//			hero.transform.position = mousePos;
+
+			mousePos = dataContainer.GetLevelIndicesFromScreenPoint(mousePos);
+			Debug.Log("levelIndices is: " + mousePos);
+			Vector2 heroPos;
+			occupants.TryGetValue(hero,out heroPos);
+			Debug.Log("heroPos is: " + heroPos);
+//			hero.transform.position=dataContainer.getScreenPointFromLevelIndices((int)mousePos.x,(int)mousePos.y);
+
+			BFSPathFinding(heroPos, mousePos);
+		}
 	}
 
 	public void SetupPlayer(GameObject heroRender, Vector2 initLocation) {
@@ -72,7 +86,7 @@ public class GameManager : MonoBehaviour {
     }
     private void TryMoveHero(int direction)
     {
-		Debug.Log("MoveInput");
+		Debug.Log("MoveInput is: " + direction);
         Vector2 heroPos;
 		Vector2 oldHeroPos;
 		Vector2 nextPos;
@@ -88,6 +102,7 @@ public class GameManager : MonoBehaviour {
 				occupants[hero]=heroPos;
 				if(dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]==groundTile){//moving onto a ground tile
 					dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]=dataContainer.heroTile;
+					Debug.Log("Player location is: " + heroPos.x + ", " + heroPos.y);
 				}else if(dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]==destinationTile){//moving onto a destination tile
 					dataContainer.levelData[(int)heroPos.x,(int)heroPos.y]=heroOnDestinationTile;
 				}
@@ -132,7 +147,6 @@ public class GameManager : MonoBehaviour {
 				}
 			}
 		}
-		Debug.Log("ballsOnDest:" + ballsOnDestination + ", ballCount: " + ballCount);
 		if(ballsOnDestination==ballCount){
 			gameOver=true;
 		}
@@ -193,6 +207,81 @@ public class GameManager : MonoBehaviour {
 		return objPos;
     }
 
+	public List<Vector2> getNeighbours(Vector2 cellIndices) {
+		List<Vector2> neighbours = new List<Vector2>();
+		
+		for (int x = -1; x <= 1; x++) {
+			for (int y = -1; y <= 1; y++) {
+				if (x == 0 && x == y) {
+					continue;
+				}				
+				
+				Vector2 checkIndices = new Vector2 (cellIndices.x + x, cellIndices.y + y);
+
+				if (IsValidPosition(checkIndices)) {
+					neighbours.Add(checkIndices);
+//					Debug.Log(checkIndices + " is a neighbour");
+				}
+			}
+		}
+		return neighbours;
+	}
+
+	List<Vector2> BFSPathFinding(Vector2 startPos, Vector2 targetPos) {
+		Debug.Log("in BFS");
+		//List<Vector2> path = new List<Vector2>();
+		List<Vector2> openNeighbours = new List<Vector2>();
+		List<Vector2> closedNeighbours = new List<Vector2>();
+		List<Vector2> history = new List<Vector2>();
+		openNeighbours.Add(startPos);
+		closedNeighbours.Add(startPos);
+
+		
+		while (openNeighbours.Count > 0) {
+			if ((!IsValidPosition(targetPos)) ||
+				(IsOccuppied(targetPos))) {
+					break;
+				}
+			Vector2 currentPos = openNeighbours[0];
+			closedNeighbours.Add(currentPos);
+			openNeighbours.Remove(currentPos);
+
+			foreach (Vector2 pos in getNeighbours(currentPos)) {
+				if (IsOccuppied(pos)) {
+					continue;
+				}
+				if (!openNeighbours.Contains(pos) && !closedNeighbours.Contains(pos)) {
+					Debug.Log("checked nodes are: " + pos);
+
+					openNeighbours.Add(pos);
+				}
+
+				if (pos == targetPos && closedNeighbours.Contains(pos)) {
+//					foreach (Vector2 vec in closedNeighbours) {
+						if(IsValidPosition(pos)){//check if it is a valid position & falls inside the level array
+						if(!IsOccuppied(pos)){//check if it is occuppied by a ball
+							Vector2 oldHeroPos = pos;
+				//move hero
+							RemoveOccuppant(oldHeroPos);//reset old level data at old position
+							hero.transform.position=dataContainer.getScreenPointFromLevelIndices((int)pos.x,(int)pos.y);
+							occupants[hero]=pos;
+							if(dataContainer.levelData[(int)pos.x,(int)pos.y]==groundTile){//moving onto a ground tile
+								dataContainer.levelData[(int)pos.x,(int)pos.y]=dataContainer.heroTile;
+								Debug.Log("Player location is: " + pos.x + ", " + pos.y);
+							}else if(dataContainer.levelData[(int)pos.x,(int)pos.y]==destinationTile){//moving onto a destination tile
+								dataContainer.levelData[(int)pos.x,(int)pos.y]=heroOnDestinationTile;
+							}
+						}
+					}
+				
+					Debug.Log("target nodes are: " + pos);
+					break;
+				}
+			}
+
+		}
+		return closedNeighbours;
+	}
 	public void RestartLevel(){
 		//Application.LoadLevel(0);
 		SceneManager.LoadScene(0);
